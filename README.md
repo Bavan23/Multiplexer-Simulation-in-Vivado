@@ -99,8 +99,7 @@ always @(*)
     2'b01: Y = B;
     2'b10: Y = C; 
     2'b11: Y = D;
-    default: Y = 1'bx; 
-    // Undefined
+    default: Y = 1'bx;
     endcase
     end 
     endmodule 
