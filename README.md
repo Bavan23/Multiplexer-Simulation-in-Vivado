@@ -1,11 +1,13 @@
-SIMULATION AND IMPLEMENTATION OF LOGIC GATES
-AIM:
+# SIMULATION AND IMPLEMENTATION OF LOGIC GATES :
+## AIM:
+
 To design and simulate a 4:1 Multiplexer (MUX) using Verilog HDL in four different modeling styles—Gate-Level, Data Flow, Behavioral, and Structural—and to verify its functionality through a testbench using the Vivado 2023.1 simulation environment. The experiment aims to understand how different abstraction levels in Verilog can be used to describe the same digital logic circuit and analyze their performance.
 
-APPARATUS REQUIRED:
+## APPARATUS REQUIRED:
+
 Vivado 2023.1
 
-Procedure
+## PROCEDURE:
 1. Launch Vivado
 Open Vivado 2023.1 by double-clicking the Vivado icon or searching for it in the Start menu.
 2. Create a New Project
@@ -51,84 +53,137 @@ You can include the timing diagram from the simulation window showing the correc
 10. Close the Simulation
 Once done, close the simulation by going to Simulation → "Close Simulation".
 
-Logic Diagram
+## Logic Diagram:
 
 ![image](https://github.com/user-attachments/assets/d4ab4bc3-12b0-44dc-8edb-9d586d8ba856)
 
-Truth Table
+## Truth Table:
 
 ![image](https://github.com/user-attachments/assets/c850506c-3f6e-4d6b-8574-939a914b2a5f)
 
-Verilog Code
+## Verilog Code:
 
-4:1 MUX Gate-Level Implementation
- 
+### 4:1 MUX Gate-Level Implementation
+~~~
 module multiplexer(s1,s0,a,b,c,d,y);
-input s1,s0,a,b,c,d; 
-output y; 
-wire[3:0]w; 
+input s1,s0,a,b,c,d;
+output y;
+wire[3:0]w;
 and g1(w[0],~s1,~s0,a);
-and g2(w[1],~s1,s0,b); 
-and g3(w[2],s1,~s0,c); 
+and g2(w[1],~s1,s0,b);
+and g3(w[2],s1,~s0,c);
 and g4(w[3],s1,s0,d);
-or g5(y,w[0],w[1],w[2],w[3]); 
-endmodule 
+or g5(y,w[0],w[1],w[2],w[3]);
+endmodule
+~~~
+## output:
+![gt](https://github.com/user-attachments/assets/016f9490-d84c-43ba-9830-9aa0f44d8620)
 
-output: ![bavan_gatelevel](https://github.com/user-attachments/assets/69a03996-6190-4281-8a76-81b20a9948c4)
 
 
-4:1 MUX Data Flow Implementation
+### 4:1 MUX Data Flow Implementation
+~~~
+module mul_data(
+    output Y,        
+    input I0, I1, I2, I3, 
+    input S0, S1     
+);
+ assign Y = (~S1 & ~S0 & I0) |  
+               (~S1 & S0 & I1)  |  
+               (S1 & ~S0 & I2)  |  
+               (S1 & S0 & I3);     
+endmodule
+~~~
+## output: 
+![data](https://github.com/user-attachments/assets/ab1c2922-0594-462d-8827-fa9982a68ff6)
 
-module mul_data( output Y,
-input I0, I1, I2, I3, input S0, S1
-); assign Y = (~S1 & ~S0 & I0) |
-(~S1 & S0 & I1) |
-(S1 & ~S0 & I2) |
-(S1 & S0 & I3);     
-endmodule 
+### 4:1 MUX Behavioral Implementation
+~~~
+module mux4_to_1_behavioral (
+    input wire A,
+    input wire B,
+    input wire C,
+    input wire D,
+    input wire S0,
+    input wire S1,
+    output reg Y
+);
+    always @(*) begin
+        case ({S1, S0})
+            2'b00: Y = A;
+            2'b01: Y = B;
+            2'b10: Y = C;
+            2'b11: Y = D;
+            default: Y = 1'bx; // Undefined
+        endcase
+    end
+endmodule
+~~~
+## output :
+![behavioural](https://github.com/user-attachments/assets/5d0df1cb-ca67-4175-a59e-29bb770d7b2d)
 
-output:
-![image](https://github.com/user-attachments/assets/76849d32-9785-4867-bbe6-f5225e3a438c)
 
-4:1 MUX Behavioral Implementation
+### 4:1 MUX Structural Implementation
+~~~
+module mux(s, i, y);
+input [1:0] s;
+input [3:0] i;
+output reg y;  
 
-module mux4_to_1_behavioral ( input wire A, input wire B, input wire C, input wire D, input wire S0, input wire S1, output reg Y ); 
-always @(*)     
-    begin case ({S1, S0})
-    2'b00:Y = A; 
-    2'b01: Y = B;
-    2'b10: Y = C; 
-    2'b11: Y = D;
-    default: Y = 1'bx;
+always @(s or i)  
+begin
+    case (s)
+        2'b00: y = i[0];   
+        2'b01: y = i[1];   
+        2'b10: y = i[2];   
+        2'b11: y = i[3];   
+        default: y = 1'b0; 
     endcase
-    end 
-    endmodule 
+end
+endmodule
+~~~
+## output:
+![struct](https://github.com/user-attachments/assets/796a1b3d-9821-4c75-b8d1-c5c8c6935f43)
+
+
+### Testbench:
+~~~
+module multiplexer_tb;
+  // Declare inputs as reg and outputs as wire
+  reg s1, s0, a, b, c, d;
+  wire y;
+
+  // Instantiate the multiplexer module
+  multiplexer uut (
+    .s1(s1), 
+    .s0(s0), 
+    .a(a), 
+    .b(b), 
+    .c(c), 
+    .d(d), 
+    .y(y)
+  );
+
+  // Test cases
+  initial begin
+    // Monitor changes in inputs and output
+    $monitor("s1 = %b, s0 = %b, a = %b, b = %b, c = %b, d = %b, y = %b", s1, s0, a, b, c, d, y);
+
+s1 = 0; s0 = 0; a = 1; b = 0; c = 0; d = 0; #10;  // Test case 1
+    s1 = 0; s0 = 1; a = 0; b = 1; c = 0; d = 0; #10;  // Test case 2
+    s1 = 1; s0 = 0; a = 0; b = 0; c = 1; d = 0; #10;  // Test case 3
+    s1 = 1; s0 = 1; a = 0; b = 0; c = 0; d = 1; #10;  // Test case 4
     
-output : ![image](https://github.com/user-attachments/assets/367a408a-c4a6-4cc2-a17a-4816f49c1a93)
+// Finish simulation
+    $finish;
+  end
+endmodule
+~~~
+## output:
+![mtb](https://github.com/user-attachments/assets/3afc4242-9590-4941-9269-e8fe21377187)
 
 
-4:1 MUX Structural Implementation
-
-module mux(s, i, y); input [1:0] s; input [3:0] i; output reg y;
-always @(s or i)
-begin case (s) 2'b00: y = i[0];
-2'b01: y = i[1];
-2'b10: y = i[2];
-2'b11: y = i[3];
-default: y = 1'b0; endcase end endmodule 
-
-output:![image](https://github.com/user-attachments/assets/df61375b-5b07-49fe-9b77-97659e496956)
-
-
-Testbench Implementation
-
-`timescale 1ns / 1ps module multiplexer_tb; // Declare inputs as reg and outputs as wire reg s1, s0, a, b, c, d; wire y; multiplexer uut ( .s1(s1), .s0(s0), .a(a), .b(b), .c(c), .d(d), .y(y) ); initial begin
-
-$monitor("s1 = %b, s0 = %b, a = %b, b = %b, c = %b, d = %b, y = %b", s1, s0, a, b, c, d, y); s1 = 0; s0 = 0; a = 1; b = 0; c = 0; d = 0; #10; // Test case 1 s1 = 0; s0 = 1; a = 0; b = 1; c = 0; d = 0; #10; // Test case 2 s1 = 1; s0 = 0; a = 0; b = 0; c = 1; d = 0; #10; // Test case 3 s1 = 1; s0 = 1; a = 0; b = 0; c = 0; d = 1; #10; // Test case 4
-
-$finish; end endmodule
-
-Conclusion:
+## Conclusion:
 
 In this experiment, a 4:1 Multiplexer was successfully designed and simulated using Verilog HDL across four different modeling styles: Gate-Level, Data Flow, Behavioral, and Structural. The simulation results verified the correct functionality of the MUX, with all implementations producing identical outputs for the given input conditions.
 
